@@ -1,0 +1,14 @@
+<html>
+<head>
+<title>Results</title>
+</head>
+<body>
+<h1>Checker Results</h1>
+<p>Report files (if produced):</p>
+<ul>
+<li><a href="/{{ json_path }}">JSON report</a></li>
+<li><a href="/{{ txt_path }}">Text report</a></li>
+</ul>
+<p>To run simulation, use the simulation runner locally (see README).</p>
+</body>
+</html>

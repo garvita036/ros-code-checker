@@ -1,0 +1,72 @@
+import argparse
+# assumes ROS environment sourced
+proc = subprocess.Popen(['rosrun', pkg, node], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+return proc
+
+
+
+
+def collect_joint_states(duration=10):
+# placeholder: ideally subscribe to /joint_states; here we sample via rostopic
+cmd = ['rostopic', 'echo', '-n', '1', '/joint_states']
+try:
+out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True, timeout=5)
+except Exception as e:
+out = str(e)
+return out
+
+
+
+
+def take_screenshot(outpath, name='screenshot.png'):
+Path(outpath).mkdir(parents=True, exist_ok=True)
+full = Path(outpath)/name
+# Users will need to adapt based on their Gazebo setup; provide placeholder
+with open(full, 'wb') as f:
+f.write(b'')
+return str(full)
+
+
+
+
+def main():
+parser = argparse.ArgumentParser()
+parser.add_argument('--launch', help='roslaunch file (package/file.launch)', required=True)
+parser.add_argument('--pkg', help='package of submitted node', required=True)
+parser.add_argument('--node', help='node script', required=True)
+args = parser.parse_args()
+
+
+os.makedirs(OUTDIR, exist_ok=True)
+launch_proc = run_launch(args.launch)
+time.sleep(5)
+node_proc = run_node(args.pkg, args.node)
+
+
+time.sleep(2)
+joints = collect_joint_states(duration=5)
+screenshot = take_screenshot(OUTDIR, 'frame1.png')
+
+
+result = {
+'joint_states_sample': joints,
+'screenshot': screenshot,
+'node_returncode': node_proc.poll()
+}
+
+
+with open(os.path.join(OUTDIR, 'sim_report.json'), 'w') as jf:
+json.dump(result, jf, indent=2)
+
+
+# cleanup (user may want to keep Gazebo running; we attempt gentle kill)
+try:
+node_proc.terminate()
+launch_proc.terminate()
+except Exception:
+pass
+print('Simulation complete. Results in', OUTDIR)
+
+
+if __name__ == '__main__':
+main()
